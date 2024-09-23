@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Remi Etalat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+
+        #game-area {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        #deck-area, #player-hand, #discard-pile {
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #eee;
+        }
+
+        #hand li {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Joc de Remi Etalat</h1>
+    <div id="game-area">
+        <div id="deck-area">
+            <button id="draw-card">Trage carte</button>
+            <button id="end-turn">Încheie turul</button>
+        </div>
+        <div id="player-hand">
+            <h2>Mâna jucătorului</h2>
+            <ul id="hand"></ul>
+        </div>
+        <div id="discard-pile">
+            <h2>Grămada de aruncări</h2>
+            <ul id="discard"></ul>
+        </div>
+    </div>
+    <script>
+        // Deck-ul de cărți
+        const suits = ['Roșu', 'Galben', 'Verde', 'Negru'];
+        const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+        let deck = [];
+        let playerHand = [];
+        let discardPile = [];
+
+        // Creează deck-ul de cărți
+        function createDeck() {
+            deck = [];
+            for (let suit of suits) {
+                for (let value of values) {
+                    deck.push({ suit, value });
+                    deck.push({ suit, value }); // Fiecare carte apare de 2 ori
+                }
+            }
+            deck.push({ suit: 'Joker', value: 0 });
+            deck.push({ suit: 'Joker', value: 0 });
+            shuffle(deck);
+        }
+
+        // Amestecă cărțile
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Trage o carte
+        function drawCard() {
+            if (deck.length === 0) {
+                alert('Nu mai sunt cărți în deck!');
+                return;
+            }
+            let card = deck.pop();
+            playerHand.push(card);
+            updateHand();
+        }
+
+        // Aruncă o carte în grămada de aruncări
+        function discardCard(index) {
+            let card = playerHand.splice(index, 1)[0];
+            discardPile.push(card);
+            updateHand();
+            updateDiscardPile();
+        }
+
+        // Actualizează mâna jucătorului
+        function updateHand() {
+            const handElement = document.getElementById('hand');
+            handElement.innerHTML = '';
+            playerHand.forEach((card, index) => {
+                let li = document.createElement('li');
+                li.textContent = `${card.value} de ${card.suit}`;
+                li.onclick = () => discardCard(index);
+                handElement.appendChild(li);
+            });
+        }
+
+        // Actualizează grămada de aruncări
+        function updateDiscardPile() {
+            const discardElement = document.getElementById('discard');
+            discardElement.innerHTML = '';
+            discardPile.forEach(card => {
+                let li = document.createElement('li');
+                li.textContent = `${card.value} de ${card.suit}`;
+                discardElement.appendChild(li);
+            });
+        }
+
+        // Încheie turul jucătorului
+        function endTurn() {
+            if (playerHand.length === 0) {
+                alert('Ai câștigat!');
+                return;
+            }
+            alert('Turul s-a încheiat!');
+        }
+
+        // Inițializează jocul
+        function initGame() {
+            createDeck();
+            drawInitialHand();
+        }
+
+        // Trage mâna inițială
+        function drawInitialHand() {
+            for (let i = 0; i < 14; i++) {
+                drawCard();
+            }
+        }
+
+        // Evenimente butoane
+        document.getElementById('draw-card').addEventListener('click', drawCard);
+        document.getElementById('end-turn').addEventListener('click', endTurn);
+
+        // Inițializează jocul la încărcarea paginii
+        initGame();
+    </script>
+</body>
+</html>
