@@ -79,31 +79,29 @@
 <body>
     <h1>Joc de Remi Etalat</h1>
     <div id="game-area">
+        <div class="player-table" id="player-1">
+            <h3>Jucător 1</h3>
+            <div class="board" id="board-1"></div>
+            <ul class="hand"></ul>
+        </div>
+        <div class="player-table" id="player-2">
+            <h3>Jucător 2</h3>
+            <div class="board" id="board-2"></div>
+            <ul class="hand"></ul>
+        </div>
+        <div class="player-table" id="player-3">
+            <h3>Jucător 3</h3>
+            <div class="board" id="board-3"></div>
+            <ul class="hand"></ul>
+        </div>
+        <div class="player-table" id="player-4">
+            <h3>Jucător 4</h3>
+            <div class="board" id="board-4"></div>
+            <ul class="hand"></ul>
+        </div>
         <div id="deck-area">
             <button id="draw-card">Trage carte</button>
             <button id="end-turn">Încheie turul</button>
-        </div>
-        <div class="board" id="game-board">
-            <!-- Cărțile vor fi plasate aici -->
-        </div>
-        <div id="players">
-            <h2>Mâinile jucătorilor</h2>
-            <div id="player-1" class="player-table">
-                <h3>Jucător 1</h3>
-                <ul class="hand"></ul>
-            </div>
-            <div id="player-2" class="player-table">
-                <h3>Jucător 2</h3>
-                <ul class="hand"></ul>
-            </div>
-            <div id="player-3" class="player-table">
-                <h3>Jucător 3</h3>
-                <ul class="hand"></ul>
-            </div>
-            <div id="player-4" class="player-table">
-                <h3>Jucător 4</h3>
-                <ul class="hand"></ul>
-            </div>
         </div>
         <div id="discard-pile">
             <h2>Grămada de aruncări</h2>
@@ -195,19 +193,19 @@
         }
 
         // Dropping the card
-        function drop(event) {
+        function drop(event, playerIndex) {
             event.preventDefault();
             const data = event.dataTransfer.getData('text/plain');
-            const [playerIndex, cardIndex] = data.split(',').map(Number);
-            const card = playerHands[playerIndex].splice(cardIndex, 1)[0]; // Scoate cartea din mână
-            const boardElement = document.getElementById('game-board');
+            const [fromPlayerIndex, cardIndex] = data.split(',').map(Number);
+            const card = playerHands[fromPlayerIndex].splice(cardIndex, 1)[0]; // Scoate cartea din mână
+            const boardElement = document.getElementById(`board-${playerIndex + 1}`);
 
             // Adaugă cartea pe tablă
             let cardDiv = document.createElement('div');
             cardDiv.textContent = `${card.value} de ${card.suit}`;
             cardDiv.classList.add('card');
             cardDiv.draggable = true;
-            cardDiv.ondragstart = (e) => drag(e, playerIndex, cardIndex);
+            cardDiv.ondragstart = (e) => drag(e, fromPlayerIndex, cardIndex);
             cardDiv.ondragend = () => {
                 cardDiv.classList.remove('draggable');
             };
@@ -248,8 +246,10 @@
 
         document.getElementById('draw-card').addEventListener('click', () => drawCard(currentPlayer));
         document.getElementById('end-turn').addEventListener('click', endTurn);
-        document.getElementById('game-board').addEventListener('dragover', allowDrop);
-        document.getElementById('game-board').addEventListener('drop', drop);
+        document.querySelectorAll('.board').forEach((board, index) => {
+            board.addEventListener('dragover', allowDrop);
+            board.addEventListener('drop', () => drop(event, index));
+        });
 
         // Pornește jocul
         initGame();
