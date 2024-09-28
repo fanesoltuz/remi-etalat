@@ -118,23 +118,27 @@
             }
         }
 
-        // Trage o carte pentru jucătorul curent
-        function drawCard() {
+        // Trage o carte pentru un jucător specific
+        function drawCard(playerIndex) {
             if (deck.length === 0) {
                 alert('Nu mai sunt cărți în deck!');
                 return;
             }
             let card = deck.pop();
-            playerHands[currentPlayer].push(card);
-            updateHands();
+            playerHands[playerIndex].push(card);
         }
 
-        // Aruncă o carte în grămada de aruncări
-        function discardCard(cardIndex) {
-            let card = playerHands[currentPlayer].splice(cardIndex, 1)[0];
-            discardPile.push(card);
+        // Distribuie mâinile inițiale: 14 cărți fiecărui jucător, unul aleator cu 15 cărți
+        function drawInitialHands() {
+            const luckyPlayer = Math.floor(Math.random() * 4); // Un jucător aleatoriu
+            for (let i = 0; i < 14; i++) {
+                for (let player = 0; player < 4; player++) {
+                    drawCard(player); // Fiecare jucător primește 14 cărți
+                }
+            }
+            drawCard(luckyPlayer); // Jucătorul norocos primește 15 cărți
+            currentPlayer = luckyPlayer; // Jucătorul cu 15 cărți începe
             updateHands();
-            updateDiscardPile();
         }
 
         // Actualizează mâinile jucătorilor
@@ -154,6 +158,14 @@
                 });
             });
             highlightCurrentPlayer();
+        }
+
+        // Aruncă o carte în grămada de aruncări
+        function discardCard(cardIndex) {
+            let card = playerHands[currentPlayer].splice(cardIndex, 1)[0];
+            discardPile.push(card);
+            updateHands();
+            updateDiscardPile();
         }
 
         // Actualizează grămada de aruncări
@@ -189,41 +201,13 @@
             });
         }
 
-        // Inițializează jocul
-        function initGame() {
-            createDeck();
-            drawInitialHands();
-        }
-
-        // Trage mâinile inițiale pentru fiecare jucător (14 cărți, un jucător aleatoriu cu 15 cărți)
-        function drawInitialHands() {
-            const luckyPlayer = Math.floor(Math.random() * 4); // Un jucător aleatoriu
-            for (let i = 0; i < 14; i++) {
-                playerHands.forEach((_, index) => {
-                    drawCard(index);
-                });
-            }
-            drawCard(luckyPlayer); // Jucătorul norocos trage o carte în plus
-            currentPlayer = luckyPlayer; // Jucătorul cu 15 cărți începe
-            updateHands();
-        }
-
-        // Trage o carte pentru un jucător specific
-        function drawCard(playerIndex) {
-            if (deck.length === 0) {
-                alert('Nu mai sunt cărți în deck!');
-                return;
-            }
-            let card = deck.pop();
-            playerHands[playerIndex].push(card);
-        }
-
         // Evenimente butoane
-        document.getElementById('draw-card').addEventListener('click', drawCard);
+        document.getElementById('draw-card').addEventListener('click', () => drawCard(currentPlayer));
         document.getElementById('end-turn').addEventListener('click', endTurn);
 
         // Inițializează jocul la încărcarea paginii
-        initGame();
+        createDeck();
+        drawInitialHands();
     </script>
 </body>
 </html>
