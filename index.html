@@ -1,5 +1,4 @@
-
-  <!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -52,6 +51,10 @@
             min-width: 100px; /* Lățimea minimă pentru cărți */
             text-align: center;
         }
+
+        .current-player {
+            border: 2px solid green;
+        }
     </style>
 </head>
 <body>
@@ -86,12 +89,12 @@
         </div>
     </div>
     <script>
-        // Deck-ul de cărți
         const suits = ['Roșu', 'Galben', 'Verde', 'Negru'];
         const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
         let deck = [];
         let playerHands = [[], [], [], []]; // 4 jucători
         let discardPile = [];
+        let currentPlayer = 0; // Jucătorul curent începe de la 0 (Jucătorul 1)
 
         // Creează deck-ul de cărți
         function createDeck() {
@@ -115,20 +118,20 @@
             }
         }
 
-        // Trage o carte pentru un jucător
-        function drawCard(playerIndex) {
+        // Trage o carte pentru jucătorul curent
+        function drawCard() {
             if (deck.length === 0) {
                 alert('Nu mai sunt cărți în deck!');
                 return;
             }
             let card = deck.pop();
-            playerHands[playerIndex].push(card);
+            playerHands[currentPlayer].push(card);
             updateHands();
         }
 
         // Aruncă o carte în grămada de aruncări
-        function discardCard(playerIndex, cardIndex) {
-            let card = playerHands[playerIndex].splice(cardIndex, 1)[0];
+        function discardCard(cardIndex) {
+            let card = playerHands[currentPlayer].splice(cardIndex, 1)[0];
             discardPile.push(card);
             updateHands();
             updateDiscardPile();
@@ -142,10 +145,15 @@
                 hand.forEach((card, index) => {
                     let li = document.createElement('li');
                     li.textContent = `${card.value} de ${card.suit}`;
-                    li.onclick = () => discardCard(playerIndex, index);
+                    li.onclick = () => {
+                        if (playerIndex === currentPlayer) {
+                            discardCard(index);
+                        }
+                    };
                     handElement.appendChild(li);
                 });
             });
+            highlightCurrentPlayer();
         }
 
         // Actualizează grămada de aruncări
@@ -159,13 +167,26 @@
             });
         }
 
-        // Încheie turul unui jucător
-        function endTurn(playerIndex) {
-            if (playerHands[playerIndex].length === 0) {
-                alert(`Jucătorul ${playerIndex + 1} a câștigat!`);
+        // Încheie turul jucătorului curent și trece la următorul jucător
+        function endTurn() {
+            if (playerHands[currentPlayer].length === 0) {
+                alert(`Jucătorul ${currentPlayer + 1} a câștigat!`);
                 return;
             }
-            alert(`Turul jucătorului ${playerIndex + 1} s-a încheiat!`);
+            currentPlayer = (currentPlayer + 1) % 4; // Trecem la următorul jucător (rotire ciclică)
+            alert(`Turul jucătorului ${currentPlayer + 1} începe!`);
+            updateHands();
+        }
+
+        // Subliniază jucătorul curent
+        function highlightCurrentPlayer() {
+            document.querySelectorAll('.player-table').forEach((player, index) => {
+                if (index === currentPlayer) {
+                    player.classList.add('current-player');
+                } else {
+                    player.classList.remove('current-player');
+                }
+            });
         }
 
         // Inițializează jocul
@@ -183,19 +204,11 @@
         }
 
         // Evenimente butoane
-        document.getElementById('draw-card').addEventListener('click', () => {
-            // Aici poți adăuga logica pentru a trasa cartea pentru jucătorul activ
-            drawCard(0); // Exemplu: trage pentru jucătorul 1
-        });
-
-        document.getElementById('end-turn').addEventListener('click', () => {
-            // Aici poți adăuga logica pentru a încheia turul pentru jucătorul activ
-            endTurn(0); // Exemplu: încheie turul pentru jucătorul 1
-        });
+        document.getElementById('draw-card').addEventListener('click', drawCard);
+        document.getElementById('end-turn').addEventListener('click', endTurn);
 
         // Inițializează jocul la încărcarea paginii
         initGame();
     </script>
 </body>
 </html>
-     
