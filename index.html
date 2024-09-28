@@ -27,6 +27,20 @@
             margin-bottom: 20px;
         }
 
+        .board {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(4, 100px);
+            gap: 10px;
+            background-color: #b5e7a0;
+            padding: 20px;
+            border: 2px solid #aaa;
+            border-radius: 10px;
+            margin: 20px;
+            width: 80%;
+            height: 400px;
+        }
+
         button {
             margin: 10px;
             padding: 10px 20px;
@@ -47,13 +61,18 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             background-color: #eee;
-            cursor: pointer;
-            min-width: 100px; /* Lățimea minimă pentru cărți */
+            cursor: move; /* Pointer cursor for draggable items */
+            min-width: 100px;
             text-align: center;
+            user-select: none; /* Prevent text selection */
         }
 
         .current-player {
             border: 2px solid green;
+        }
+
+        .draggable {
+            opacity: 0.7; /* Slightly transparent while dragging */
         }
     </style>
 </head>
@@ -63,6 +82,9 @@
         <div id="deck-area">
             <button id="draw-card">Trage carte</button>
             <button id="end-turn">Încheie turul</button>
+        </div>
+        <div class="board" id="game-board">
+            <!-- Cărțile vor fi plasate aici -->
         </div>
         <div id="players">
             <h2>Mâinile jucătorilor</h2>
@@ -126,6 +148,7 @@
             }
             let card = deck.pop();
             playerHands[playerIndex].push(card);
+            updateHands();
         }
 
         // Distribuie mâinile inițiale: 14 cărți fiecărui jucător, unul aleator cu 15 cărți
@@ -149,15 +172,47 @@
                 hand.forEach((card, index) => {
                     let li = document.createElement('li');
                     li.textContent = `${card.value} de ${card.suit}`;
-                    li.onclick = () => {
-                        if (playerIndex === currentPlayer) {
-                            discardCard(index);
-                        }
+                    li.setAttribute('draggable', 'true'); // Face elementul drag-and-drop
+                    li.ondragstart = (e) => drag(e, playerIndex, index);
+                    li.ondragend = () => {
+                        li.classList.remove('draggable');
                     };
                     handElement.appendChild(li);
                 });
             });
             highlightCurrentPlayer();
+        }
+
+        // Dragging the card
+        function drag(event, playerIndex, cardIndex) {
+            event.dataTransfer.setData('text/plain', `${playerIndex},${cardIndex}`);
+            event.target.classList.add('draggable');
+        }
+
+        // Allow dropping cards on the board
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        // Dropping the card
+        function drop(event) {
+            event.preventDefault();
+            const data = event.dataTransfer.getData('text/plain');
+            const [playerIndex, cardIndex] = data.split(',').map(Number);
+            const card = playerHands[playerIndex].splice(cardIndex, 1)[0]; // Scoate cartea din mână
+            const boardElement = document.getElementById('game-board');
+
+            // Adaugă cartea pe tablă
+            let cardDiv = document.createElement('div');
+            cardDiv.textContent = `${card.value} de ${card.suit}`;
+            cardDiv.classList.add('card');
+            cardDiv.draggable = true;
+            cardDiv.ondragstart = (e) => drag(e, playerIndex, cardIndex);
+            cardDiv.ondragend = () => {
+                cardDiv.classList.remove('draggable');
+            };
+            boardElement.appendChild(cardDiv);
+            updateHands();
         }
 
         // Aruncă o carte în grămada de aruncări
@@ -179,35 +234,25 @@
             });
         }
 
-        // Încheie turul jucătorului curent și trece la următorul jucător
+        // Încheie turul jucătorului curent
         function endTurn() {
-            if (playerHands[currentPlayer].length === 0) {
-                alert(`Jucătorul ${currentPlayer + 1} a câștigat!`);
-                return;
-            }
-            currentPlayer = (currentPlayer + 1) % 4; // Trecem la următorul jucător (rotire ciclică)
-            alert(`Turul jucătorului ${currentPlayer + 1} începe!`);
+            currentPlayer = (currentPlayer + 1) % 4; // Schimbă la jucătorul următor
             updateHands();
         }
 
-        // Subliniază jucătorul curent
-        function highlightCurrentPlayer() {
-            document.querySelectorAll('.player-table').forEach((player, index) => {
-                if (index === currentPlayer) {
-                    player.classList.add('current-player');
-                } else {
-                    player.classList.remove('current-player');
-                }
-            });
+        // Inițializează jocul
+        function initGame() {
+            createDeck();
+            drawInitialHands();
         }
 
-        // Evenimente butoane
         document.getElementById('draw-card').addEventListener('click', () => drawCard(currentPlayer));
         document.getElementById('end-turn').addEventListener('click', endTurn);
+        document.getElementById('game-board').addEventListener('dragover', allowDrop);
+        document.getElementById('game-board').addEventListener('drop', drop);
 
-        // Inițializează jocul la încărcarea paginii
-        createDeck();
-        drawInitialHands();
+        // Pornește jocul
+        initGame();
     </script>
 </body>
 </html>
