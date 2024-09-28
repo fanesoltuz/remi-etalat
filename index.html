@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -195,12 +195,27 @@
             drawInitialHands();
         }
 
-        // Trage mâinile inițiale pentru fiecare jucător
+        // Trage mâinile inițiale pentru fiecare jucător (14 cărți, un jucător aleatoriu cu 15 cărți)
         function drawInitialHands() {
+            const luckyPlayer = Math.floor(Math.random() * 4); // Un jucător aleatoriu
             for (let i = 0; i < 14; i++) {
-                playerHands.forEach((_, index) => drawCard(index));
+                playerHands.forEach((_, index) => {
+                    drawCard(index);
+                });
             }
+            drawCard(luckyPlayer); // Jucătorul norocos trage o carte în plus
+            currentPlayer = luckyPlayer; // Jucătorul cu 15 cărți începe
             updateHands();
+        }
+
+        // Trage o carte pentru un jucător specific
+        function drawCard(playerIndex) {
+            if (deck.length === 0) {
+                alert('Nu mai sunt cărți în deck!');
+                return;
+            }
+            let card = deck.pop();
+            playerHands[playerIndex].push(card);
         }
 
         // Evenimente butoane
