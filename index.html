@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -137,6 +136,7 @@
         <div id="deck-area">
             <button id="draw-card">Trage carte</button>
             <button id="end-turn">Încheie turul</button>
+            <button id="etalare-btn">Etalează</button> <!-- Butonul de etalare -->
         </div>
         <div id="discard-pile">
             <h2>Grămada de aruncări</h2>
@@ -150,6 +150,7 @@
         let playerHands = [[], [], [], []];
         let discardPile = [];
         let currentPlayer = 0;
+        let etalat = [false, false, false, false]; // Pentru a verifica dacă jucătorul s-a etalat
 
         // Creează deck-ul de cărți
         function createDeck() {
@@ -249,6 +250,7 @@
                 <div class="value">${card.value}</div>
                 <div class="suit">${card.suit}</div>
             `;
+
             boardElement.appendChild(cardDiv);
             updateHands();
         }
@@ -272,7 +274,29 @@
             });
         }
 
-        // Încheie turul curent
+        // Verifică dacă jucătorul are suficiente puncte pentru a se etala (minim 30 puncte)
+        function canEtalare(playerIndex) {
+            const hand = playerHands[playerIndex];
+            const totalPoints = hand.reduce((sum, card) => sum + card.value, 0);
+            return totalPoints >= 30;
+        }
+
+        // Functia pentru etalare
+        function etalare() {
+            if (etalat[currentPlayer]) {
+                alert("Te-ai etalat deja!");
+                return;
+            }
+
+            if (canEtalare(currentPlayer)) {
+                alert("Te-ai etalat cu succes!");
+                etalat[currentPlayer] = true;
+            } else {
+                alert("Nu ai suficiente puncte pentru a te etala!");
+            }
+        }
+
+        // Încheie turul jucătorului curent
         function endTurn() {
             currentPlayer = (currentPlayer + 1) % 4;
             highlightCurrentPlayer();
@@ -292,6 +316,7 @@
         // Event listeners
         document.getElementById('draw-card').addEventListener('click', () => drawCard(currentPlayer));
         document.getElementById('end-turn').addEventListener('click', endTurn);
+        document.getElementById('etalare-btn').addEventListener('click', etalare);
         document.querySelectorAll('.board').forEach((board, index) => {
             board.addEventListener('dragover', allowDrop);
             board.addEventListener('drop', (event) => drop(event, index));
@@ -299,3 +324,7 @@
     </script>
 </body>
 </html>
+
+
+      
+      
