@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -61,10 +62,10 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             background-color: #eee;
-            cursor: move; /* Pointer cursor for draggable items */
+            cursor: move;
             min-width: 100px;
             text-align: center;
-            user-select: none; /* Prevent text selection */
+            user-select: none;
         }
 
         .current-player {
@@ -72,7 +73,41 @@
         }
 
         .draggable {
-            opacity: 0.7; /* Slightly transparent while dragging */
+            opacity: 0.7;
+        }
+
+        /* Stilizarea cărților de joc */
+        .card {
+            width: 60px;
+            height: 90px;
+            border-radius: 10px;
+            border: 2px solid #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: white;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .card.red {
+            color: red;
+        }
+
+        .card.black {
+            color: black;
+        }
+
+        .card .value {
+            font-size: 18px;
+        }
+
+        .card .suit {
+            font-size: 24px;
         }
     </style>
 </head>
@@ -112,9 +147,9 @@
         const suits = ['Roșu', 'Galben', 'Verde', 'Negru'];
         const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
         let deck = [];
-        let playerHands = [[], [], [], []]; // 4 jucători
+        let playerHands = [[], [], [], []];
         let discardPile = [];
-        let currentPlayer = 0; // Jucătorul curent începe de la 0 (Jucătorul 1)
+        let currentPlayer = 0;
 
         // Creează deck-ul de cărți
         function createDeck() {
@@ -122,7 +157,7 @@
             for (let suit of suits) {
                 for (let value of values) {
                     deck.push({ suit, value });
-                    deck.push({ suit, value }); // Fiecare carte apare de 2 ori
+                    deck.push({ suit, value });
                 }
             }
             deck.push({ suit: 'Joker', value: 0 });
@@ -149,16 +184,16 @@
             updateHands();
         }
 
-        // Distribuie mâinile inițiale: 14 cărți fiecărui jucător, unul aleator cu 15 cărți
+        // Distribuie mâinile inițiale
         function drawInitialHands() {
-            const luckyPlayer = Math.floor(Math.random() * 4); // Un jucător aleatoriu
+            const luckyPlayer = Math.floor(Math.random() * 4);
             for (let i = 0; i < 14; i++) {
                 for (let player = 0; player < 4; player++) {
-                    drawCard(player); // Fiecare jucător primește 14 cărți
+                    drawCard(player);
                 }
             }
-            drawCard(luckyPlayer); // Jucătorul norocos primește 15 cărți
-            currentPlayer = luckyPlayer; // Jucătorul cu 15 cărți începe
+            drawCard(luckyPlayer);
+            currentPlayer = luckyPlayer;
             updateHands();
         }
 
@@ -170,7 +205,7 @@
                 hand.forEach((card, index) => {
                     let li = document.createElement('li');
                     li.textContent = `${card.value} de ${card.suit}`;
-                    li.setAttribute('draggable', 'true'); // Face elementul drag-and-drop
+                    li.setAttribute('draggable', 'true');
                     li.ondragstart = (e) => drag(e, playerIndex, index);
                     li.ondragend = () => {
                         li.classList.remove('draggable');
@@ -197,18 +232,23 @@
             event.preventDefault();
             const data = event.dataTransfer.getData('text/plain');
             const [fromPlayerIndex, cardIndex] = data.split(',').map(Number);
-            const card = playerHands[fromPlayerIndex].splice(cardIndex, 1)[0]; // Scoate cartea din mână
+            const card = playerHands[fromPlayerIndex].splice(cardIndex, 1)[0];
             const boardElement = document.getElementById(`board-${playerIndex + 1}`);
 
             // Adaugă cartea pe tablă
             let cardDiv = document.createElement('div');
-            cardDiv.textContent = `${card.value} de ${card.suit}`;
             cardDiv.classList.add('card');
-            cardDiv.draggable = true;
-            cardDiv.ondragstart = (e) => drag(e, fromPlayerIndex, cardIndex);
-            cardDiv.ondragend = () => {
-                cardDiv.classList.remove('draggable');
-            };
+
+            if (card.suit === 'Roșu' || card.suit === 'Galben') {
+                cardDiv.classList.add('red');
+            } else {
+                cardDiv.classList.add('black');
+            }
+
+            cardDiv.innerHTML = `
+                <div class="value">${card.value}</div>
+                <div class="suit">${card.suit}</div>
+            `;
             boardElement.appendChild(cardDiv);
             updateHands();
         }
@@ -232,27 +272,30 @@
             });
         }
 
-        // Încheie turul jucătorului curent
+        // Încheie turul curent
         function endTurn() {
-            currentPlayer = (currentPlayer + 1) % 4; // Schimbă la jucătorul următor
-            updateHands();
+            currentPlayer = (currentPlayer + 1) % 4;
+            highlightCurrentPlayer();
+        }
+
+        // Evidențiază jucătorul curent
+        function highlightCurrentPlayer() {
+            document.querySelectorAll('.player-table').forEach((table, index) => {
+                table.classList.toggle('current-player', index === currentPlayer);
+            });
         }
 
         // Inițializează jocul
-        function initGame() {
-            createDeck();
-            drawInitialHands();
-        }
+        createDeck();
+        drawInitialHands();
 
+        // Event listeners
         document.getElementById('draw-card').addEventListener('click', () => drawCard(currentPlayer));
         document.getElementById('end-turn').addEventListener('click', endTurn);
         document.querySelectorAll('.board').forEach((board, index) => {
             board.addEventListener('dragover', allowDrop);
-            board.addEventListener('drop', () => drop(event, index));
+            board.addEventListener('drop', (event) => drop(event, index));
         });
-
-        // Pornește jocul
-        initGame();
     </script>
 </body>
 </html>
